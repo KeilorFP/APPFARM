@@ -3,7 +3,7 @@ streamlit
 pandas
 requests
 numpy
-pyarrow      <-- IMPORTANTE (Nuevo)
+pyarrow
 
 # Plotting / Mapping
 plotly
@@ -13,10 +13,11 @@ streamlit-folium
 # Export / Files / Images
 xlsxwriter
 reportlab
-Pillow       <-- IMPORTANTE (Nuevo)
+Pillow
 
 # Database
 psycopg2-binary
+supabase
 
 # Security
 bcrypt
@@ -26,3 +27,4 @@ python-dotenv
 
 # Optional UI
 streamlit-option-menu
+fpdf2
