@@ -1,0 +1,28 @@
+# Core
+streamlit
+pandas
+requests
+numpy
+pyarrow      <-- IMPORTANTE (Nuevo)
+
+# Plotting / Mapping
+plotly
+folium
+streamlit-folium
+
+# Export / Files / Images
+xlsxwriter
+reportlab
+Pillow       <-- IMPORTANTE (Nuevo)
+
+# Database
+psycopg2-binary
+
+# Security
+bcrypt
+
+# Env management
+python-dotenv
+
+# Optional UI
+streamlit-option-menu
