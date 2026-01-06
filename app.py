@@ -2,15 +2,16 @@ import streamlit as st
 import datetime
 import requests
 from utils import aplicar_estilos_css
-from database import verify_user
+# 1. IMPORTANTE: Agregamos create_user aquí 👇
+from database import verify_user, create_user
 
-# 1. CONFIGURACIÓN DE PÁGINA
+# 2. CONFIGURACIÓN DE PÁGINA
 st.set_page_config(page_title="Finca App ERP", page_icon="🚜", layout="wide")
 
-# 2. APLICAR ESTILOS GLOBALES (Base)
+# 3. APLICAR ESTILOS GLOBALES (Base)
 aplicar_estilos_css()
 
-# 3. CSS "AGRI-TECH FUTURISTA" (NUEVO FONDO DIGITAL)
+# 4. CSS "AGRI-TECH FUTURISTA" (FONDO DIGITAL)
 st.markdown("""
     <style>
         /* A. ELIMINAR BARRA LATERAL */
@@ -18,40 +19,30 @@ st.markdown("""
         
         /* B. BOTONES ESTILO "PANEL DIGITAL AGRITECH" */
         div.stButton > button {
-            /* 1. FONDO TECNOLÓGICO DE CUADRÍCULA (GRID) */
-            /* Fondo base oscuro verdoso */
             background-color: rgba(10, 30, 15, 0.85) !important;
-            /* Dibujamos lineas horizontales y verticales con gradientes */
             background-image: 
                 linear-gradient(rgba(76, 175, 80, 0.3) 1px, transparent 1px),
                 linear-gradient(90deg, rgba(76, 175, 80, 0.3) 1px, transparent 1px) !important;
-            /* Tamaño de los cuadros de la rejilla */
             background-size: 20px 20px !important;
             
-            /* 2. BORDE NEÓN */
-            border: 2px solid #00E676 !important; /* Verde eléctrico */
+            border: 2px solid #00E676 !important; 
             border-radius: 16px !important;
             
-            /* 3. RESPLANDOR INTERNO Y EXTERNO (GLOW) */
-            /* Sombra externa + Sombra interna para efecto de pantalla encendida */
             box-shadow: 0 0 15px rgba(0, 230, 118, 0.2), inset 0 0 25px rgba(0, 230, 118, 0.1) !important;
             backdrop-filter: blur(5px);
             
-            /* 4. FORMA Y TAMAÑO (Igual que antes) */
             aspect-ratio: 1 / 1 !important; 
             height: auto !important; 
             width: 100% !important;
             max-width: 200px !important; 
             margin: 0 auto !important;
             
-            /* 5. TIPOGRAFÍA DIGITAL */
-            color: #ffffff !important; /* Texto blanco siempre */
-            text-shadow: 0 1px 4px rgba(0,0,0,0.8); /* Sombra para leer mejor */
+            color: #ffffff !important; 
+            text-shadow: 0 1px 4px rgba(0,0,0,0.8); 
             font-size: 20px !important;
             font-weight: 700 !important;
             white-space: pre-wrap !important;
             
-            /* Alineación y Transición */
             display: flex !important;
             flex-direction: column !important;
             justify-content: center !important;
@@ -59,29 +50,23 @@ st.markdown("""
             transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
         }
         
-        /* C. EFECTO HOVER (MÁS BRILLO) */
         div.stButton > button:hover {
             transform: translateY(-5px) scale(1.03);
             background-color: rgba(20, 50, 25, 0.95) !important;
-            /* El borde y el brillo se intensifican al pasar el mouse */
             border-color: #69F0AE !important; 
             box-shadow: 0 0 25px rgba(105, 240, 174, 0.5), inset 0 0 35px rgba(105, 240, 174, 0.3) !important;
         }
         
         div.stButton > button:active {
             transform: scale(0.98);
-            box-shadow: 0 0 10px rgba(0, 230, 118, 0.8) !important;
         }
 
-        /* D. ICONOS GRANDES Y BRILLANTES */
         div.stButton > button p {
             font-size: 3rem !important; 
             margin-bottom: 10px !important;
-            /* Un brillo extra al emoji */
             filter: drop-shadow(0 0 5px rgba(0, 230, 118, 0.5));
         }
         
-        /* E. LIMPIEZA INTERFAZ */
         #MainMenu {visibility: hidden;}
         footer {visibility: hidden;}
         header {visibility: hidden;}
@@ -89,7 +74,7 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# 4. LÓGICA DE LOGIN
+# 5. LÓGICA DE LOGIN CON REGISTRO (ACTUALIZADA)
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
     st.session_state.user = ""
@@ -97,21 +82,49 @@ if "logged_in" not in st.session_state:
 if not st.session_state.logged_in:
     st.markdown("<br><br>", unsafe_allow_html=True)
     col_log1, col_log2, col_log3 = st.columns([1, 8, 1])
+    
     with col_log2:
         with st.container(border=True):
-            st.markdown("<h2 style='text-align: center;'>🚜 Acceso Finca</h2>", unsafe_allow_html=True)
-            u = st.text_input("Usuario")
-            p = st.text_input("Contraseña", type="password")
-            if st.button("INGRESAR 🔐", type="primary", use_container_width=True):
-                if verify_user(u, p):
-                    st.session_state.logged_in = True
-                    st.session_state.user = u
-                    st.rerun()
-                else:
-                    st.error("⚠️ Credenciales incorrectas")
+            st.markdown("<h2 style='text-align: center; color: #00E676;'>🚜 Acceso Finca</h2>", unsafe_allow_html=True)
+            
+            # --- PESTAÑAS: INGRESAR | CREAR USUARIO ---
+            tab_login, tab_registro = st.tabs(["🔑 Ingresar", "📝 Crear Usuario"])
+            
+            # Pestaña 1: Login Normal
+            with tab_login:
+                u = st.text_input("Usuario", key="login_u")
+                p = st.text_input("Contraseña", type="password", key="login_p")
+                
+                if st.button("INGRESAR 🔐", type="primary", use_container_width=True):
+                    if verify_user(u, p):
+                        st.session_state.logged_in = True
+                        st.session_state.user = u
+                        st.rerun()
+                    else:
+                        st.error("⚠️ Usuario o contraseña incorrectos")
+
+            # Pestaña 2: Registro Nuevo
+            with tab_registro:
+                st.info("Crea una cuenta nueva para el equipo.")
+                new_u = st.text_input("Nuevo Usuario", key="reg_u")
+                new_p = st.text_input("Nueva Contraseña", type="password", key="reg_p")
+                confirm_p = st.text_input("Confirmar Contraseña", type="password", key="reg_c")
+                
+                if st.button("CREAR CUENTA ✨", type="secondary", use_container_width=True):
+                    if not new_u or not new_p:
+                        st.warning("⚠️ Debes llenar todos los datos.")
+                    elif new_p != confirm_p:
+                        st.error("❌ Las contraseñas no coinciden.")
+                    else:
+                        success, msg = create_user(new_u, new_p)
+                        if success:
+                            st.success(msg)
+                            st.balloons()
+                        else:
+                            st.error(msg)
     st.stop()
 
-# 5. HEADER (DATOS DE USUARIO Y CLIMA)
+# 6. HEADER (DATOS DE USUARIO Y CLIMA)
 OWNER = st.session_state.user
 hoy = datetime.date.today()
 
@@ -137,7 +150,7 @@ with c_head2:
 
 st.divider()
 
-# 6. MENÚ GRID (7 BOTONES)
+# 7. MENÚ GRID (7 BOTONES)
 c_pad_izq, c_grid, c_pad_der = st.columns([1, 6, 1]) 
 
 with c_grid:
@@ -182,7 +195,7 @@ with c_grid:
         if st.button("⚙️\n\nAjustes", use_container_width=True):
             st.switch_page("pages/Ajustes.py")
 
-# 7. FOOTER
+# 8. FOOTER
 st.markdown("<br><br>", unsafe_allow_html=True)
 if st.button("Cerrar Sesión 🔒", type="secondary"):
     st.session_state.logged_in = False
