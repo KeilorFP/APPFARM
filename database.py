@@ -187,10 +187,11 @@ def create_all_tables():
 
 
 # ==========================================
-# 🔐 USUARIOS & SEGURIDAD
+# 🔐 USUARIOS & SEGURIDAD (ACTUALIZADO)
 # ==========================================
 
 def verify_user(username, password):
+    """Verifica credenciales usando bcrypt."""
     with get_db_cursor() as (cur, conn):
         cur.execute("SELECT password FROM users WHERE username = %s", (username,))
         row = cur.fetchone()
@@ -205,7 +206,7 @@ def verify_user(username, password):
             except:
                 return False
         
-        # Legacy Migration (Auto-fix old passwords)
+        # Migración automática de contraseñas viejas (texto plano a bcrypt)
         if stored == password:
             try:
                 hashed = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
@@ -217,15 +218,26 @@ def verify_user(username, password):
         return False
 
 
-def add_user(username, password):
+def create_user(username, password):
+    """Crea un usuario nuevo con contraseña encriptada. Retorna (Bool, Mensaje)."""
     try:
         with get_db_cursor() as (cur, conn):
+            # 1. Verificar si existe
+            cur.execute("SELECT username FROM users WHERE username = %s", (username,))
+            if cur.fetchone():
+                return False, "⚠️ El usuario ya existe. Intenta con otro."
+
+            # 2. Encriptar
             hashed = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
+            
+            # 3. Insertar
             cur.execute("INSERT INTO users (username, password) VALUES (%s, %s)", (username, hashed))
             conn.commit()
-            return True
-    except psycopg2.Error:
-        return False
+            return True, "✅ Usuario creado exitosamente."
+    except psycopg2.Error as e:
+        return False, f"❌ Error de base de datos: {e}"
+    except Exception as e:
+        return False, f"❌ Error inesperado: {e}"
 
 
 # ==========================================
