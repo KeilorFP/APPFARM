@@ -1,29 +1,16 @@
-# Core
 streamlit
 pandas
 requests
 numpy
 pyarrow
-
-# Plotting / Mapping
 plotly
 folium
 streamlit-folium
-
-# Export / Files / Images
 xlsxwriter
 reportlab
-fpdf             <-- ¡ESTA FALTABA! (Para los reportes PDF)
+fpdf
 Pillow
-
-# Database
 psycopg2-binary
-
-# Security
 bcrypt
-
-# Env management
 python-dotenv
-
-# Optional UI
 streamlit-option-menu
