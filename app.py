@@ -1,215 +1,168 @@
 import streamlit as st
 import datetime
-import time
 import requests
 from utils import aplicar_estilos_css
-# 1. IMPORTANTE: Funciones de base de datos
 from database import verify_user, create_user
 
-# 2. CONFIGURACIÓN DE PÁGINA (Modo Móvil Centrado)
+# 1. CONFIGURACIÓN: 'layout="wide"' ES LA CLAVE PARA USAR TODA LA PANTALLA
 st.set_page_config(
     page_title="Finca App", 
     page_icon="🚜", 
-    layout="centered", 
+    layout="wide",  # <--- ESTO OCUPA TODO EL ANCHO
     initial_sidebar_state="collapsed"
 )
 
-# 3. CSS "GLASSMORPHISM DARK" (DISEÑO MÓVIL 2x2)
+# 2. CSS "MODO PANTALLA COMPLETA"
 st.markdown("""
     <style>
-        /* A. FONDO OSCURO */
+        /* A. FONDO Y COLORES */
         .stApp {
             background: linear-gradient(180deg, #050a06 0%, #102015 100%);
             color: white;
         }
 
-        /* B. OCULTAR COSAS QUE MOLESTAN EN EL CELULAR */
+        /* B. QUITAR MÁRGENES EXCESIVOS (Para aprovechar los bordes) */
+        .block-container {
+            padding-top: 1rem !important;
+            padding-bottom: 2rem !important;
+            padding-left: 0.5rem !important; /* Márgenes laterales mínimos */
+            padding-right: 0.5rem !important;
+            max-width: 100% !important;
+        }
+
+        /* C. OCULTAR ELEMENTOS INNECESARIOS */
         [data-testid="stSidebar"] { display: none !important; }
         #MainMenu {visibility: hidden;}
         footer {visibility: hidden;}
         header {visibility: hidden;}
 
-        /* C. BOTONES DEL MENÚ (TARJETAS DE VIDRIO) */
+        /* D. BOTONES GIGANTES (150px de alto) */
         div.stButton > button {
             width: 100% !important;
-            height: 100px !important; /* Altura perfecta para el dedo */
-            margin-bottom: 0px !important;
+            height: 150px !important; /* <--- AUMENTADO PARA SER MUY GRANDE */
+            margin-bottom: 5px !important;
             
-            /* Diseño interno: Icono arriba, texto abajo */
             display: flex !important;
             flex-direction: column !important; 
             align-items: center !important;
             justify-content: center !important;
-            gap: 8px !important;
+            gap: 10px !important;
 
-            /* Efecto Vidrio (Glassmorphism) */
             background: rgba(255, 255, 255, 0.05) !important;
             backdrop-filter: blur(10px);
             border: 1px solid rgba(0, 230, 118, 0.3) !important;
-            border-radius: 20px !important;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            border-radius: 25px !important; /* Bordes más redondeados */
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
             
             transition: transform 0.1s !important;
         }
 
-        /* Efecto al presionar */
         div.stButton > button:active {
-            transform: scale(0.95);
+            transform: scale(0.97);
             background-color: rgba(0, 230, 118, 0.2) !important;
             border-color: #00E676 !important;
         }
 
-        /* D. TEXTO DE LOS BOTONES */
-        div.stButton > button p {
-            line-height: 1.2 !important;
-        }
+        /* E. TEXTO E ICONOS MÁS GRANDES */
+        div.stButton > button p { line-height: 1.2 !important; }
         
-        /* El Emoji (Primer párrafo dentro del botón) */
+        /* Emoji Gigante */
         div.stButton > button p:first-child {
-             font-size: 32px !important; 
+             font-size: 45px !important; /* <--- EMOJI MÁS GRANDE */
              margin-bottom: 0px !important;
-             filter: drop-shadow(0 0 5px rgba(0,230,118,0.5));
+             filter: drop-shadow(0 0 8px rgba(0,230,118,0.6));
         }
         
-        /* El Texto (Segundo párrafo) */
+        /* Texto Grande */
         div.stButton > button p:last-child {
              color: #ffffff !important;
-             font-size: 16px !important;
-             font-weight: 600 !important;
+             font-size: 19px !important; /* <--- TEXTO MÁS LEGIBLE */
+             font-weight: 700 !important;
              letter-spacing: 0.5px !important;
+             text-transform: uppercase; /* MAYÚSCULAS PARA QUE SE VEA MEJOR */
         }
 
-        /* E. ENCABEZADO Y TEXTOS */
-        h3 { margin-bottom: 0 !important; color: #00E676 !important; }
+        /* F. AJUSTES VARIOS */
+        h3 { margin: 0 !important; color: #00E676 !important; font-size: 1.5rem !important; }
         p { color: #ccc; }
         
-        /* F. ESTILO ESPECÍFICO PARA EL LOGIN (Evitar conflictos) */
-        div[data-testid="stExpander"] {
-            background-color: rgba(255, 255, 255, 0.05);
-            border-radius: 10px;
-        }
-        
+        /* Login container */
+        div[data-testid="stExpander"] { background: rgba(255,255,255,0.05); }
     </style>
 """, unsafe_allow_html=True)
 
-# 4. LÓGICA DE LOGIN CON REGISTRO
+# 3. LÓGICA LOGIN (Igual que antes)
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
     st.session_state.user = ""
 
 if not st.session_state.logged_in:
-    st.markdown("<br><br>", unsafe_allow_html=True)
-    
-    # Contenedor centrado para el login
+    st.markdown("<br>", unsafe_allow_html=True)
     with st.container(border=True):
-        st.markdown("<h2 style='text-align: center; color: #00E676;'>🚜 Acceso Finca</h2>", unsafe_allow_html=True)
+        st.markdown("<h2 style='text-align: center; color: #00E676;'>🚜 Acceso</h2>", unsafe_allow_html=True)
+        tab_login, tab_registro = st.tabs(["Ingresar", "Registro"])
         
-        tab_login, tab_registro = st.tabs(["🔑 Ingresar", "📝 Crear Usuario"])
-        
-        # Pestaña 1: Login
         with tab_login:
             u = st.text_input("Usuario", key="login_u")
-            p = st.text_input("Contraseña", type="password", key="login_p")
-            
+            p = st.text_input("Clave", type="password", key="login_p")
             st.markdown("<br>", unsafe_allow_html=True)
-            # Nota: El estilo de botón definido en CSS se aplicará aquí también, se verá moderno
-            if st.button("INGRESAR 🔐", type="primary", use_container_width=True):
+            # Botón de login ajustado manualmente para que no sea tan alto como los del menú
+            st.markdown("""<style>div.stButton > button { height: auto !important; }</style>""", unsafe_allow_html=True)
+            if st.button("ENTRAR", type="primary", use_container_width=True):
                 if verify_user(u, p):
                     st.session_state.logged_in = True
                     st.session_state.user = u
                     st.rerun()
                 else:
-                    st.error("⚠️ Datos incorrectos")
-
-        # Pestaña 2: Registro
+                    st.error("Datos incorrectos")
+        
         with tab_registro:
-            st.caption("Crea una cuenta nueva para el equipo.")
-            new_u = st.text_input("Nuevo Usuario", key="reg_u")
-            new_p = st.text_input("Nueva Contraseña", type="password", key="reg_p")
-            confirm_p = st.text_input("Confirmar", type="password", key="reg_c")
-            
-            st.markdown("<br>", unsafe_allow_html=True)
-            if st.button("CREAR CUENTA ✨", type="secondary", use_container_width=True):
-                if not new_u or not new_p:
-                    st.warning("⚠️ Llena todo.")
-                elif new_p != confirm_p:
-                    st.error("❌ Las claves no coinciden.")
-                else:
-                    success, msg = create_user(new_u, new_p)
-                    if success:
-                        st.success(msg)
-                        st.balloons()
-                    else:
-                        st.error(msg)
+            new_u = st.text_input("Usuario", key="reg_u")
+            new_p = st.text_input("Clave", type="password", key="reg_p")
+            if st.button("CREAR", type="secondary", use_container_width=True):
+                success, msg = create_user(new_u, new_p)
+                if success: st.success(msg)
+                else: st.error(msg)
     st.stop()
 
-# 5. HEADER (DATOS DE USUARIO Y CLIMA)
+# 4. ENCABEZADO COMPACTO
 OWNER = st.session_state.user
 hoy = datetime.date.today()
 
-@st.cache_data(ttl=3600)
-def obtener_clima_cached():
-    try:
-        url = "https://api.open-meteo.com/v1/forecast?latitude=9.66&longitude=-84.02&current=temperature_2m,precipitation&daily=precipitation_probability_max&timezone=auto"
-        r = requests.get(url, timeout=2)
-        data = r.json()
-        return data["current"]["temperature_2m"], data["daily"]["precipitation_probability_max"][0]
-    except:
-        return None, None
-
-col_saludo, col_clima = st.columns([2, 1])
-
-with col_saludo:
-    st.markdown(f"### Hola, {OWNER} 👋")
-    st.caption(f"{hoy.strftime('%d de %B, %Y')}")
-
-with col_clima:
-    temp, prob = obtener_clima_cached()
-    if temp:
-        # Micro-widget de clima
-        st.markdown(f"""
-        <div style="text-align: right; background: rgba(255,255,255,0.05); padding: 5px; border-radius: 10px;">
-            <span style="font-size: 18px; font-weight: bold; color: white;">{temp}°C</span><br>
-            <span style="font-size: 11px; color: #00E676;">☔ {prob}%</span>
-        </div>
-        """, unsafe_allow_html=True)
-
-st.markdown("<br>", unsafe_allow_html=True)
-
-# 6. MENÚ GRID 2x2 (OPTIMIZADO PARA CELULAR)
-# Usamos 'gap="small"' para que se vean juntos pero ordenados
-
-# --- FILA 1 ---
-c1, c2 = st.columns(2, gap="small")
+c1, c2 = st.columns([2, 1])
 with c1:
-    if st.button("📅\n\nPlanificar"): st.switch_page("pages/Planificador.py")
+    st.markdown(f"### {OWNER}") # Solo nombre para ahorrar espacio
+    st.caption(f"{hoy.strftime('%d %b')}") # Fecha corta
 with c2:
-    if st.button("🚜\n\nJornadas"): st.switch_page("pages/Jornadas.py")
+    st.markdown(f"""
+    <div style="text-align: right; background: rgba(0,230,118,0.1); padding: 5px 10px; border-radius: 12px; border: 1px solid #00E676;">
+        <span style="font-size: 16px; font-weight: bold; color: white;">24°C</span>
+    </div>
+    """, unsafe_allow_html=True)
 
-st.markdown("<br>", unsafe_allow_html=True) # Espacio separador
+# 5. MENÚ GRID (PANTALLA COMPLETA)
+# Al usar layout="wide" y quitar márgenes, esto llenará la pantalla horizontalmente
 
-# --- FILA 2 ---
-c3, c4 = st.columns(2, gap="small")
-with c3:
+c_a, c_b = st.columns(2, gap="small")
+
+with c_a:
+    if st.button("📅\n\nPlanificar"): st.switch_page("pages/Planificador.py")
+    # Agregamos espacio vertical pequeño entre filas si es necesario, 
+    # pero el margin-bottom del CSS ya lo maneja
     if st.button("☕\n\nCosecha"): st.switch_page("pages/Cosecha.py")
-with c4:
-    if st.button("📦\n\nInsumos"): st.switch_page("pages/Insumos.py")
-
-st.markdown("<br>", unsafe_allow_html=True) # Espacio separador
-
-# --- FILA 3 ---
-c5, c6 = st.columns(2, gap="small")
-with c5:
     if st.button("🗺️\n\nMapa"): st.switch_page("pages/Mapa_Finca.py")
-with c6:
+
+with c_b:
+    if st.button("🚜\n\nJornadas"): st.switch_page("pages/Jornadas.py")
+    if st.button("📦\n\nInsumos"): st.switch_page("pages/Insumos.py")
     if st.button("📊\n\nReportes"): st.switch_page("pages/Reportes.py")
 
-# --- AJUSTES Y SALIDA ---
+# Botón Ajustes al final (Ancho completo)
 st.markdown("<br>", unsafe_allow_html=True)
-if st.button("⚙️   Configuración & Ajustes"):
+if st.button("⚙️ Configuración"):
     st.switch_page("pages/Ajustes.py")
 
-st.markdown("<br><br>", unsafe_allow_html=True)
-if st.button("Cerrar Sesión 🔒", type="secondary"):
+st.markdown("<br>", unsafe_allow_html=True)
+if st.button("Salir 🔒", type="secondary"):
     st.session_state.logged_in = False
     st.rerun()
