@@ -1,5 +1,6 @@
 import streamlit as st
 import datetime
+import time
 import pandas as pd
 from database import add_jornada, get_jornadas_between, get_tarifas, add_vale, get_saldo_global
 # Importamos la nueva función de encabezado
