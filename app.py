@@ -1,5 +1,6 @@
 import streamlit as st
 import datetime
+import time
 import requests
 from utils import aplicar_estilos_css
 # 1. IMPORTANTE: Funciones de base de datos
