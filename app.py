@@ -3,15 +3,15 @@ import datetime
 import requests
 from database import verify_user, create_user
 
-# 1. CONFIGURACIÓN DE PÁGINA (WIDE + COLLAPSED)
+# 1. CONFIGURACIÓN: LAYOUT WIDE (OBLIGATORIO)
 st.set_page_config(
     page_title="Finca App", 
     page_icon="🚜", 
-    layout="wide",  # Ocupar todo el ancho disponible
+    layout="wide", 
     initial_sidebar_state="collapsed"
 )
 
-# 2. CSS AGRESIVO (PANTALLA COMPLETA + SIN BORDES)
+# 2. CSS AGRESIVO (FORZAR GRID 2x2 EN MÓVIL)
 st.markdown("""
     <style>
         /* A. FONDO OSCURO */
@@ -20,79 +20,74 @@ st.markdown("""
             color: white;
         }
 
-        /* B. ELIMINAR MÁRGENES (FULL WIDTH) */
-        /* Esto es lo que hará que los botones ocupen todo el ancho del celular */
+        /* B. ELIMINAR TODOS LOS MÁRGENES DE LA PANTALLA */
         .block-container {
             padding-top: 1rem !important;
             padding-bottom: 0rem !important;
-            padding-left: 0.5rem !important; /* Margen mínimo */
+            padding-left: 0.5rem !important;
             padding-right: 0.5rem !important;
             max-width: 100% !important;
         }
 
-        /* C. OCULTAR MENÚ "ADMINISTRAR APP" Y BARRA SUPERIOR */
+        /* C. OCULTAR BARRA DE HERRAMIENTAS (ADMINISTRAR APP) */
         [data-testid="stToolbar"] { display: none !important; } 
-        [data-testid="stDecoration"] { display: none !important; } 
         [data-testid="stHeader"] { display: none !important; } 
-        header { display: none !important; } 
-        #MainMenu { display: none !important; }
         footer { display: none !important; }
-        
-        /* Ocultar botón "Manage app" flotante inferior si aparece */
-        .stDeployButton { display: none !important; }
+        .stDeployButton { display: none !important; } /* Oculta el botón flotante inferior */
+        div[class*="stDecoration"] { display: none !important; }
 
-        /* D. BOTONES GIGANTES (ESTILO PANEL) */
+        /* D. TRUCO MAESTRO: OBLIGAR COLUMNAS LADO A LADO EN MÓVIL */
+        /* Esto evita que se pongan una debajo de otra */
+        [data-testid="column"] {
+            width: 50% !important;
+            flex: 1 1 50% !important;
+            min-width: 50% !important;
+        }
+        
+        /* E. ESTILO DE LOS BOTONES GIGANTES */
         div.stButton > button {
             width: 100% !important;
-            height: 160px !important; /* Altura forzada */
+            height: 140px !important; /* Altura fija */
+            margin: 0px !important;
+            padding: 0px !important;
             
-            /* Alineación del contenido */
+            /* Alineación interna */
             display: flex !important;
             flex-direction: column !important; 
             align-items: center !important;
             justify-content: center !important;
-            gap: 10px !important;
+            gap: 5px !important;
 
-            /* Diseño Visual */
+            /* Visual */
             background: rgba(255, 255, 255, 0.05) !important;
             backdrop-filter: blur(10px);
-            border: 1px solid rgba(0, 230, 118, 0.4) !important; /* Borde verde más visible */
-            border-radius: 20px !important;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
-            margin: 0px !important;
+            border: 1px solid rgba(0, 230, 118, 0.4) !important;
+            border-radius: 15px !important;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
         }
         
-        /* Efecto al tocar */
-        div.stButton > button:active {
-            background-color: rgba(0, 230, 118, 0.2) !important;
-            transform: scale(0.98);
-        }
-
-        /* E. TEXTOS GIGANTES */
-        /* Emoji */
+        /* F. TEXTO DENTRO DE LOS BOTONES */
+        div.stButton > button p { line-height: 1.1 !important; }
+        
         div.stButton > button p:first-child {
-             font-size: 45px !important; 
-             line-height: 1 !important;
+             font-size: 38px !important; /* Emoji grande */
              margin: 0 !important;
-             filter: drop-shadow(0 0 5px rgba(0, 230, 118, 0.5));
         }
-        /* Texto */
+        
         div.stButton > button p:last-child {
-             font-size: 18px !important;
-             font-weight: 800 !important;
+             font-size: 16px !important; /* Texto legible */
+             font-weight: 700 !important;
+             color: #ffffff !important;
              text-transform: uppercase;
-             color: white !important;
-             letter-spacing: 1px;
         }
-
-        /* F. HEADER PERSONALIZADO (Pequeño para dar espacio a botones) */
-        h3 { margin: 0 !important; font-size: 1.4rem !important; color: #00E676 !important;}
-        p { margin: 0 !important; }
+        
+        /* G. LOGIN */
+        div[data-testid="stExpander"] { background: rgba(255,255,255,0.05); }
 
     </style>
 """, unsafe_allow_html=True)
 
-# 3. LÓGICA DE LOGIN (Mantenemos tu lógica)
+# 3. LÓGICA DE LOGIN
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
     st.session_state.user = ""
@@ -100,75 +95,69 @@ if "logged_in" not in st.session_state:
 if not st.session_state.logged_in:
     st.markdown("<br><br>", unsafe_allow_html=True)
     with st.container(border=True):
-        st.markdown("<h2 style='text-align: center; color: #00E676;'>🚜 Login</h2>", unsafe_allow_html=True)
+        st.markdown("<h2 style='text-align: center; color: #00E676;'>🚜 Acceso</h2>", unsafe_allow_html=True)
         u = st.text_input("Usuario", key="u")
         p = st.text_input("Clave", type="password", key="p")
         st.markdown("<br>", unsafe_allow_html=True)
         
-        # Estilo específico para botón de login (para que no sea gigante)
+        # Botón de login normal
         st.markdown("""<style>div.stButton > button { height: auto !important; }</style>""", unsafe_allow_html=True)
-        
         if st.button("ENTRAR", type="primary", use_container_width=True):
             if verify_user(u, p):
                 st.session_state.logged_in = True
                 st.session_state.user = u
                 st.rerun()
             else:
-                st.error("Error de acceso")
+                st.error("Error")
     st.stop()
 
-# 4. HEADER MINIMALISTA
+# 4. HEADER
 OWNER = st.session_state.user
 hoy = datetime.date.today()
 
 c1, c2 = st.columns([2, 1])
 with c1:
-    st.markdown(f"### {OWNER}")
+    st.markdown(f"<h3 style='color:#00E676; margin:0;'>{OWNER}</h3>", unsafe_allow_html=True)
     st.caption(f"{hoy.strftime('%d %b')}")
 with c2:
-    st.markdown(f"""
-    <div style="text-align: right; padding: 5px;">
-        <span style="color: #00E676; font-size: 20px; font-weight: bold;">24°C</span>
-    </div>
-    """, unsafe_allow_html=True)
+    st.markdown("""
+    <div style="text-align: right;">
+        <span style="color: white; font-weight: bold; font-size: 20px;">24°C</span>
+    </div>""", unsafe_allow_html=True)
 
-# 5. GRID 2x2 (SIN GAP)
-# Usamos un contenedor para quitar espacios extra
+# 5. GRID 2x2 FORZADO
 st.markdown("<br>", unsafe_allow_html=True)
 
 # FILA 1
-c_a, c_b = st.columns(2) # Streamlit dividirá la pantalla al 50% exacto
+c_a, c_b = st.columns(2, gap="small")
 with c_a:
-    if st.button("📅\n\nPlanificar"): st.switch_page("pages/Planificador.py")
+    if st.button("📅\n\nPlanificar", key="btn_plan"): st.switch_page("pages/Planificador.py")
 with c_b:
-    if st.button("🚜\n\nJornadas"): st.switch_page("pages/Jornadas.py")
+    if st.button("🚜\n\nJornadas", key="btn_jor"): st.switch_page("pages/Jornadas.py")
 
-# Espacio pequeño
-st.markdown("<div style='height: 10px'></div>", unsafe_allow_html=True)
+st.markdown("<div style='height: 8px'></div>", unsafe_allow_html=True) # Pequeño espacio vertical
 
 # FILA 2
-c_c, c_d = st.columns(2)
+c_c, c_d = st.columns(2, gap="small")
 with c_c:
-    if st.button("☕\n\nCosecha"): st.switch_page("pages/Cosecha.py")
+    if st.button("☕\n\nCosecha", key="btn_cos"): st.switch_page("pages/Cosecha.py")
 with c_d:
-    if st.button("📦\n\nInsumos"): st.switch_page("pages/Insumos.py")
+    if st.button("📦\n\nInsumos", key="btn_ins"): st.switch_page("pages/Insumos.py")
 
-# Espacio pequeño
-st.markdown("<div style='height: 10px'></div>", unsafe_allow_html=True)
+st.markdown("<div style='height: 8px'></div>", unsafe_allow_html=True)
 
 # FILA 3
-c_e, c_f = st.columns(2)
+c_e, c_f = st.columns(2, gap="small")
 with c_e:
-    if st.button("🗺️\n\nMapa"): st.switch_page("pages/Mapa_Finca.py")
+    if st.button("🗺️\n\nMapa", key="btn_map"): st.switch_page("pages/Mapa_Finca.py")
 with c_f:
-    if st.button("📊\n\nReportes"): st.switch_page("pages/Reportes.py")
+    if st.button("📊\n\nReportes", key="btn_rep"): st.switch_page("pages/Reportes.py")
 
-# Espacio y Botón Ajustes (Ancho completo)
+# BOTONES DE ABAJO
 st.markdown("<div style='height: 15px'></div>", unsafe_allow_html=True)
-if st.button("⚙️ Configuración"):
+if st.button("⚙️ Configuración", key="btn_conf"):
     st.switch_page("pages/Ajustes.py")
 
-# Botón Salir Discreto
 st.markdown("<br>", unsafe_allow_html=True)
 if st.button("Salir", type="secondary"):
     st.session_state.logged_in = False
