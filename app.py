@@ -6,11 +6,11 @@ from database import verify_user, create_user
 st.set_page_config(
     page_title="Finca App", 
     page_icon="🚜", 
-    layout="centered", # 'centered' ayuda a que no se estiren al infinito en PC
+    layout="centered",
     initial_sidebar_state="collapsed"
 )
 
-# 2. CSS PARA TAMAÑO "IDEAL" (72px Altura)
+# 2. CSS "LIMPIEZA EXTREMA" (Oculta Administrar App y Bordes)
 st.markdown("""
     <style>
         /* A. FONDO */
@@ -19,25 +19,37 @@ st.markdown("""
             color: white;
         }
 
-        /* B. LIMPIEZA DE PANTALLA */
+        /* B. LIMPIEZA EXTREMA DE STREAMLIT */
+        /* Oculta la barra superior (Hamburger menu, Running man) */
+        header { visibility: hidden !important; height: 0px !important; }
+        [data-testid="stHeader"] { display: none !important; }
+        
+        /* Oculta la barra de herramientas (Administrar app, Deploy, etc) */
+        [data-testid="stToolbar"] { display: none !important; }
+        
+        /* Oculta el pie de página (Made with Streamlit) */
+        footer { visibility: hidden !important; display: none !important; }
+        
+        /* Oculta botones flotantes específicos de despliegue */
+        .stDeployButton { display: none !important; }
+        div[data-testid="stStatusWidget"] { display: none !important; }
+        #MainMenu { display: none !important; }
+        
+        /* Ajuste para que el contenido suba al no haber header */
         .block-container {
-            padding-top: 1.5rem !important;
+            padding-top: 1rem !important;
             padding-bottom: 2rem !important;
             padding-left: 1rem !important;
             padding-right: 1rem !important;
         }
-        
-        header, footer, [data-testid="stToolbar"], .stDeployButton { 
-            display: none !important; 
-        }
 
-        /* C. ESTILO DE BOTÓN "TAMAÑO NORMAL" */
+        /* C. ESTILO DE BOTÓN "TAMAÑO IDEAL" (72px) */
         div.stButton > button {
             width: 100% !important;
-            height: 72px !important; /* <--- ALTURA ESTÁNDAR MÓVIL (Ideal) */
+            height: 72px !important;
             margin-bottom: 10px !important;
             
-            /* Diseño Horizontal: Icono Izq | Texto Der */
+            /* Diseño Horizontal */
             display: flex !important;
             flex-direction: row !important; 
             align-items: center !important;
@@ -45,38 +57,35 @@ st.markdown("""
             padding-left: 20px !important; 
             gap: 15px !important;
 
-            /* Visual Sutil */
+            /* Visual */
             background: rgba(255, 255, 255, 0.05) !important;
             backdrop-filter: blur(10px);
             border: 1px solid rgba(0, 230, 118, 0.25) !important;
-            border-radius: 12px !important; /* Bordes menos redondos, más serios */
+            border-radius: 12px !important;
             box-shadow: 0 2px 5px rgba(0,0,0,0.2);
         }
 
-        /* Efecto al tocar */
         div.stButton > button:active {
             background-color: rgba(0, 230, 118, 0.15) !important;
             transform: scale(0.98);
         }
 
-        /* D. TEXTOS EQUILIBRADOS */
+        /* D. TEXTOS */
         div.stButton > button p { line-height: 1 !important; }
         
-        /* Icono (Tamaño normal) */
         div.stButton > button p:first-child {
-             font-size: 26px !important; /* <--- TAMAÑO NORMAL */
+             font-size: 26px !important; /* Icono normal */
              margin: 0 !important;
         }
         
-        /* Texto (Legible y limpio) */
         div.stButton > button p:last-child {
-             font-size: 18px !important; /* <--- TAMAÑO NORMAL */
+             font-size: 18px !important; /* Texto normal */
              font-weight: 600 !important;
              color: #e0e0e0 !important;
              letter-spacing: 0.3px;
         }
         
-        /* E. LOGIN & HEADER */
+        /* E. LOGIN Y OTROS */
         h3 { margin: 0 !important; font-size: 1.5rem !important; color: #00E676 !important;}
         div[data-testid="stExpander"] { background: rgba(255,255,255,0.05); }
 
@@ -122,8 +131,7 @@ with c2:
 
 st.markdown("<br>", unsafe_allow_html=True)
 
-# 5. MENÚ DE LISTA (ESTÁNDAR)
-# Botones limpios y directos
+# 5. MENÚ PRINCIPAL (Botones tamaño ideal)
 
 if st.button("📅  Planificador"): st.switch_page("pages/Planificador.py")
 if st.button("🚜  Jornadas"): st.switch_page("pages/Jornadas.py")
@@ -135,7 +143,6 @@ if st.button("📊  Reportes"): st.switch_page("pages/Reportes.py")
 st.markdown("<br>", unsafe_allow_html=True)
 if st.button("⚙️  Configuración"): st.switch_page("pages/Ajustes.py")
 
-# Botón Salir discreto
 st.markdown("<br>", unsafe_allow_html=True)
 col_salir, _ = st.columns([1, 2])
 with col_salir:
