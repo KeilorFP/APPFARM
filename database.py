@@ -1,6 +1,5 @@
 import os
 import logging
-import logging
 import datetime
 import contextlib
 from decimal import Decimal
@@ -515,6 +514,47 @@ def get_produccion_total_lote(owner):
 # ==========================================
 # 📊 FINANZAS & CIERRES (Optimizado)
 # ==========================================
+
+def get_resumen_semanal(owner, fecha_inicio, fecha_fin):
+    """
+    Suma todo lo que ha ganado cada trabajador en un rango de fechas.
+    (Incluye Jornadas + Cosecha).
+    Retorna: Lista de tuplas (Nombre Trabajador, Total Ganado)
+    """
+    with get_db_cursor() as (cur, _):
+        # 1. Pago por Días/Horas (Jornadas)
+        cur.execute("SELECT pago_dia, pago_hora_extra FROM tarifas WHERE owner=%s", (owner,))
+        res_t = cur.fetchone()
+        t_dia, t_extra = (float(res_t[0]), float(res_t[1])) if res_t else (0.0, 0.0)
+
+        cur.execute("""
+            SELECT trabajador, 
+                   SUM((dias * %s) + (horas_extra * %s)) as pago_jornada
+            FROM jornadas 
+            WHERE owner = %s AND fecha BETWEEN %s AND %s
+            GROUP BY trabajador
+        """, (t_dia, t_extra, owner, fecha_inicio, fecha_fin))
+        pagos_jornadas = {row[0]: float(row[1]) for row in cur.fetchall()}
+
+        # 2. Pago por Cosecha (Recolecciones)
+        cur.execute("""
+            SELECT trabajador, SUM(total_pagar) 
+            FROM recolecciones 
+            WHERE owner = %s AND fecha BETWEEN %s AND %s
+            GROUP BY trabajador
+        """, (owner, fecha_inicio, fecha_fin))
+        pagos_cosecha = {row[0]: float(row[1]) for row in cur.fetchall()}
+
+        # 3. Sumar Todo
+        todos_trabajadores = set(pagos_jornadas.keys()) | set(pagos_cosecha.keys())
+        resultado = []
+        
+        for t in todos_trabajadores:
+            total = pagos_jornadas.get(t, 0.0) + pagos_cosecha.get(t, 0.0)
+            resultado.append((t, total))
+        
+        # Ordenar por quien ganó más
+        return sorted(resultado, key=lambda x: x[1], reverse=True)
 
 def get_gastos_por_lote(owner):
     """Calcula gastos acumulados por lote de forma eficiente."""
