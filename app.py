@@ -10,7 +10,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# 2. CSS "LIMPIEZA EXTREMA" (Oculta Administrar App y Bordes)
+# 2. CSS "NUCLEAR" ANTI-ADMIN
 st.markdown("""
     <style>
         /* A. FONDO */
@@ -19,23 +19,26 @@ st.markdown("""
             color: white;
         }
 
-        /* B. LIMPIEZA EXTREMA DE STREAMLIT */
-        /* Oculta la barra superior (Hamburger menu, Running man) */
-        header { visibility: hidden !important; height: 0px !important; }
+        /* B. OCULTAR TODO LO DE STREAMLIT (NIVEL EXTREMO) */
+        
+        /* 1. Header y Barra Superior */
+        header { visibility: hidden !important; height: 0 !important; }
         [data-testid="stHeader"] { display: none !important; }
+        div[class^="st-emotion-cache-"] { padding-top: 0 !important; } /* Quita espacio blanco superior */
         
-        /* Oculta la barra de herramientas (Administrar app, Deploy, etc) */
-        [data-testid="stToolbar"] { display: none !important; }
+        /* 2. Barra de Herramientas (La que te molesta) */
+        [data-testid="stToolbar"] { display: none !important; visibility: hidden !important; }
         
-        /* Oculta el pie de página (Made with Streamlit) */
-        footer { visibility: hidden !important; display: none !important; }
-        
-        /* Oculta botones flotantes específicos de despliegue */
-        .stDeployButton { display: none !important; }
+        /* 3. Botones Flotantes Inferiores (Manage App / Deploy) */
+        .stDeployButton { display: none !important; visibility: hidden !important; }
         div[data-testid="stStatusWidget"] { display: none !important; }
+        button[kind="header"] { display: none !important; }
+        
+        /* 4. Pie de página */
+        footer { display: none !important; }
         #MainMenu { display: none !important; }
         
-        /* Ajuste para que el contenido suba al no haber header */
+        /* C. CONTENEDOR LIMPIO */
         .block-container {
             padding-top: 1rem !important;
             padding-bottom: 2rem !important;
@@ -43,50 +46,29 @@ st.markdown("""
             padding-right: 1rem !important;
         }
 
-        /* C. ESTILO DE BOTÓN "TAMAÑO IDEAL" (72px) */
+        /* D. BOTONES (Tu diseño actual) */
         div.stButton > button {
             width: 100% !important;
             height: 72px !important;
             margin-bottom: 10px !important;
-            
-            /* Diseño Horizontal */
             display: flex !important;
             flex-direction: row !important; 
             align-items: center !important;
             justify-content: flex-start !important;
             padding-left: 20px !important; 
             gap: 15px !important;
-
-            /* Visual */
             background: rgba(255, 255, 255, 0.05) !important;
             backdrop-filter: blur(10px);
             border: 1px solid rgba(0, 230, 118, 0.25) !important;
             border-radius: 12px !important;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-        }
-
-        div.stButton > button:active {
-            background-color: rgba(0, 230, 118, 0.15) !important;
-            transform: scale(0.98);
-        }
-
-        /* D. TEXTOS */
-        div.stButton > button p { line-height: 1 !important; }
-        
-        div.stButton > button p:first-child {
-             font-size: 26px !important; /* Icono normal */
-             margin: 0 !important;
         }
         
-        div.stButton > button p:last-child {
-             font-size: 18px !important; /* Texto normal */
-             font-weight: 600 !important;
-             color: #e0e0e0 !important;
-             letter-spacing: 0.3px;
-        }
+        /* Textos */
+        div.stButton > button p:first-child { font-size: 26px !important; margin: 0 !important; }
+        div.stButton > button p:last-child { font-size: 18px !important; color: #e0e0e0 !important; }
         
-        /* E. LOGIN Y OTROS */
-        h3 { margin: 0 !important; font-size: 1.5rem !important; color: #00E676 !important;}
+        /* Login */
+        h3 { margin: 0 !important; color: #00E676 !important;}
         div[data-testid="stExpander"] { background: rgba(255,255,255,0.05); }
 
     </style>
@@ -104,7 +86,6 @@ if not st.session_state.logged_in:
         u = st.text_input("Usuario", key="u")
         p = st.text_input("Clave", type="password", key="p")
         st.markdown("<br>", unsafe_allow_html=True)
-        # Ajuste botón login
         st.markdown("""<style>div.stButton > button { height: 45px !important; justify-content: center !important; padding-left: 0 !important;}</style>""", unsafe_allow_html=True)
         if st.button("ENTRAR", type="primary", use_container_width=True):
             if verify_user(u, p):
@@ -131,8 +112,7 @@ with c2:
 
 st.markdown("<br>", unsafe_allow_html=True)
 
-# 5. MENÚ PRINCIPAL (Botones tamaño ideal)
-
+# 5. MENÚ
 if st.button("📅  Planificador"): st.switch_page("pages/Planificador.py")
 if st.button("🚜  Jornadas"): st.switch_page("pages/Jornadas.py")
 if st.button("☕  Cosecha"): st.switch_page("pages/Cosecha.py")
